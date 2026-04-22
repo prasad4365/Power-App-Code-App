@@ -7,26 +7,9 @@
   "description": " ",
   "buildPath": "./dist",
   "buildEntryPoint": "index.html",
-  "localAppUrl": "http://localhost:3000",
+  "localAppUrl": "http://localhost:3002",
   "logoPath": "Default",
   "connectionReferences": {
-    "312358c208bf4b5eb2f2152d3345ce3d": {
-      "id": "/providers/Microsoft.PowerApps/apis/shared_sql",
-      "displayName": "SQL Server",
-      "dataSources": [
-        "testdata"
-      ],
-      "authenticationType": "oauth",
-      "dataSets": {
-        "sql-codeapps-dev-example-1.database.windows.net,Test Code App DB 1": {
-          "dataSources": {
-            "testdata": {
-              "tableName": "dbo.TestData"
-            }
-          }
-        }
-      }
-    },
     "b0d5b53e03224b5f9c779134aecc68ff": {
       "id": "/providers/Microsoft.PowerApps/apis/shared_office365users",
       "displayName": "Office 365 Users",

@@ -1,20 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getClient } from '@microsoft/power-apps/data';
-import { dataSourcesInfo } from '../../.power/schemas/appschemas/dataSourcesInfo';
 import type { TestDataRecord } from '../types/testData';
 
-const DATA_SOURCE_NAME = 'testdata';
-
-// Use the full generated dataSourcesInfo (which includes office365users) so the
-// singleton PowerDataSourcesInfoProvider is initialized with ALL data sources.
-// Override testdata.version to 'v2' which is required for the SQL connector.
-const DATA_SOURCES_INFO = {
-  ...dataSourcesInfo,
-  testdata: {
-    ...dataSourcesInfo.testdata,
-    version: 'v2',
-  },
-};
+// Points to the Express backend.
+// Locally: set VITE_API_BASE_URL=http://localhost:3001 in .env.local
+// On Azure: set VITE_API_BASE_URL to your App Service URL before running npm run build
+const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 export function useTestData() {
   const [records, setRecords] = useState<TestDataRecord[]>([]);
@@ -26,15 +16,12 @@ export function useTestData() {
     setLoading(true);
     setError(null);
     try {
-      const client = getClient(DATA_SOURCES_INFO);
-      const result = await client.retrieveMultipleRecordsAsync<TestDataRecord>(DATA_SOURCE_NAME);
-      if (result.success && result.data) {
-        setRecords(result.data);
-      } else {
-        setError(result.error?.message ?? 'Failed to load records.');
-      }
+      const res = await fetch(`${API_BASE}/api/testdata`);
+      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+      const data: TestDataRecord[] = await res.json();
+      setRecords(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error occurred.');
+      setError(err instanceof Error ? err.message : 'Failed to load records.');
     } finally {
       setLoading(false);
     }
@@ -43,17 +30,16 @@ export function useTestData() {
   const addRecord = useCallback(async (input: { Title: string; Description: string | null }): Promise<boolean> => {
     setSaving(true);
     try {
-      const client = getClient(DATA_SOURCES_INFO);
-      const result = await client.createRecordAsync<typeof input, TestDataRecord>(DATA_SOURCE_NAME, input);
-      if (result.success) {
-        await fetchRecords();
-        return true;
-      } else {
-        setError(result.error?.message ?? 'Failed to create record.');
-        return false;
-      }
+      const res = await fetch(`${API_BASE}/api/testdata`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(input),
+      });
+      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+      await fetchRecords();
+      return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error occurred.');
+      setError(err instanceof Error ? err.message : 'Failed to create record.');
       return false;
     } finally {
       setSaving(false);
@@ -63,17 +49,14 @@ export function useTestData() {
   const deleteRecord = useCallback(async (id: number): Promise<boolean> => {
     setSaving(true);
     try {
-      const client = getClient(DATA_SOURCES_INFO);
-      const result = await client.deleteRecordAsync(DATA_SOURCE_NAME, String(id));
-      if (result.success) {
-        setRecords((prev) => prev.filter((r) => r.ID !== id));
-        return true;
-      } else {
-        setError(result.error?.message ?? 'Failed to delete record.');
-        return false;
-      }
+      const res = await fetch(`${API_BASE}/api/testdata/${id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+      setRecords((prev) => prev.filter((r) => r.ID !== id));
+      return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error occurred.');
+      setError(err instanceof Error ? err.message : 'Failed to delete record.');
       return false;
     } finally {
       setSaving(false);

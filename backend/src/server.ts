@@ -1,3 +1,4 @@
+import 'dotenv/config'; // loads .env into process.env (local dev only)
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import sql from 'mssql';
@@ -10,12 +11,20 @@ const PORT = process.env.PORT || 8080; // Azure App Service injects PORT
 
 // ---------------------------------------------------------------------------
 // CORS
-// Replace the origin value below with your Power Platform environment URL,
-// e.g. "https://org<id>.crm.dynamics.com" or your custom domain.
+// ALLOWED_ORIGINS accepts a comma-separated list of origins, e.g.:
+//   ALLOWED_ORIGINS=https://org123.crm.dynamics.com,http://localhost:3002
 // ---------------------------------------------------------------------------
+const rawOrigins = process.env.ALLOWED_ORIGINS || process.env.ALLOWED_ORIGIN || '';
+const allowedOrigins = rawOrigins.split(',').map((o) => o.trim()).filter(Boolean);
+
 const corsOptions: cors.CorsOptions = {
-  origin: process.env.ALLOWED_ORIGIN || 'https://YOUR-POWER-PLATFORM-ENV.crm.dynamics.com',
-  methods: ['GET', 'POST', 'OPTIONS'],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. curl, Postman, server-to-server)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS: origin '${origin}' not allowed`));
+  },
+  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
 app.use(cors(corsOptions));
@@ -118,6 +127,29 @@ app.post('/api/testdata', async (req: Request<{}, {}, CreateTestDataBody>, res: 
     res.status(201).json({ message: 'Record created successfully.', id: newId });
   } catch (err: unknown) {
     console.error('[POST /api/testdata] SQL error:', err);
+    res.status(500).json({ message: 'An internal server error occurred.' });
+  }
+});
+
+/**
+ * DELETE /api/testdata/:id
+ * Deletes a record by its primary key.
+ */
+app.delete('/api/testdata/:id', async (req: Request<{ id: string }>, res: Response) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ message: 'Invalid ID.' });
+    return;
+  }
+  try {
+    const pool = await poolPromise;
+    await pool
+      .request()
+      .input('ID', sql.Int, id)
+      .query('DELETE FROM dbo.TestData WHERE ID = @ID');
+    res.status(200).json({ message: 'Record deleted.' });
+  } catch (err: unknown) {
+    console.error('[DELETE /api/testdata/:id] SQL error:', err);
     res.status(500).json({ message: 'An internal server error occurred.' });
   }
 });
