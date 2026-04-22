@@ -1,0 +1,56 @@
+{
+  "version": "1.0",
+  "appId": "58383938-a464-4743-b5cd-e9ffe76acd7a",
+  "appDisplayName": "App From Scratch Test",
+  "region": "prod",
+  "environmentId": "d103abf7-e138-ed3d-8de2-57f89b56ff97",
+  "description": " ",
+  "buildPath": "./dist",
+  "buildEntryPoint": "index.html",
+  "localAppUrl": "http://localhost:3000",
+  "logoPath": "Default",
+  "connectionReferences": {
+    "312358c208bf4b5eb2f2152d3345ce3d": {
+      "id": "/providers/Microsoft.PowerApps/apis/shared_sql",
+      "displayName": "SQL Server",
+      "dataSources": [
+        "testdata"
+      ],
+      "authenticationType": "oauth",
+      "dataSets": {
+        "sql-codeapps-dev-example-1.database.windows.net,Test Code App DB 1": {
+          "dataSources": {
+            "testdata": {
+              "tableName": "dbo.TestData"
+            }
+          }
+        }
+      }
+    },
+    "b0d5b53e03224b5f9c779134aecc68ff": {
+      "id": "/providers/Microsoft.PowerApps/apis/shared_office365users",
+      "displayName": "Office 365 Users",
+      "dataSources": [
+        "office365users"
+      ],
+      "dataSets": {}
+    },
+    "e168665a-dcfc-4db5-b721-a1fad1232a2b": {
+      "id": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+      "displayName": "SharePoint",
+      "dataSources": [
+        "documents"
+      ],
+      "dataSets": {
+        "https://netorgft6455485.sharepoint.com/sites/supplier_portal_documentation": {
+          "dataSources": {
+            "documents": {
+              "tableName": "Documents"
+            }
+          }
+        }
+      }
+    }
+  },
+  "databaseReferences": {}
+}
