@@ -11,17 +11,28 @@ const PORT = process.env.PORT || 8080; // Azure App Service injects PORT
 
 // ---------------------------------------------------------------------------
 // CORS
-// ALLOWED_ORIGINS accepts a comma-separated list of origins, e.g.:
-//   ALLOWED_ORIGINS=https://org123.crm.dynamics.com,http://localhost:3002
+// Always allows *.powerapps.com and *.dynamics.com (Power Platform).
+// Additional origins can be added via ALLOWED_ORIGINS env var (comma-separated).
 // --------------------------------------------------------------------------------
 const rawOrigins = process.env.ALLOWED_ORIGINS || process.env.ALLOWED_ORIGIN || '';
 const allowedOrigins = rawOrigins.split(',').map((o) => o.trim()).filter(Boolean);
+
+// Regex patterns that are always permitted regardless of env config
+const allowedOriginPatterns = [
+  /\.powerapps\.com$/,
+  /\.dynamics\.com$/,
+  /\.powerapps\.us$/,
+];
 
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
     // Allow requests with no origin (e.g. curl, Postman, server-to-server)
     if (!origin) return callback(null, true);
+    // Check exact matches from env var
     if (allowedOrigins.includes(origin)) return callback(null, true);
+    // Check regex patterns (Power Platform domains)
+    if (allowedOriginPatterns.some((pattern) => pattern.test(origin))) return callback(null, true);
+    console.warn(`CORS blocked origin: '${origin}'`);
     callback(new Error(`CORS: origin '${origin}' not allowed`));
   },
   methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
