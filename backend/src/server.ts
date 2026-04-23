@@ -101,7 +101,7 @@ app.get('/api/testdata', async (_req: Request, res: Response) => {
 
 /**
  * POST /api/testdata
- * Inserts a new record. Uses parameterized inputs to prevent SQL injection.
+ * Inserts a new record. Uses parameterized inputs to prevent SQL injection....
  *
  * Expected body: { "Title": "...", "Description": "..." }
  */
