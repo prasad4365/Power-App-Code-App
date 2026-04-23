@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 8080; // Azure App Service injects PORT
 // CORS
 // ALLOWED_ORIGINS accepts a comma-separated list of origins, e.g.:
 //   ALLOWED_ORIGINS=https://org123.crm.dynamics.com,http://localhost:3002
-// ------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------
 const rawOrigins = process.env.ALLOWED_ORIGINS || process.env.ALLOWED_ORIGIN || '';
 const allowedOrigins = rawOrigins.split(',').map((o) => o.trim()).filter(Boolean);
 
